@@ -37,7 +37,7 @@ export default function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-bg-primary">
         <Navbar />
-        <main className="max-w-5xl mx-auto px-4 py-8">
+        <main className="max-w-5xl mx-auto px-4 py-4 pb-24 sm:py-8 sm:pb-8">
           <Routes>
             <Route
               path="/"
