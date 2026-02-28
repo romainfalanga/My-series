@@ -52,7 +52,7 @@ export default function SeriesForm({ initialData, onSubmit }) {
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 max-w-lg mx-auto">
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-2">
           Titre de la série *
@@ -84,7 +84,7 @@ export default function SeriesForm({ initialData, onSubmit }) {
               key={value}
               type="button"
               onClick={() => update('status', value)}
-              className={`py-2.5 px-3 rounded-xl text-sm font-medium border transition-all ${
+              className={`py-3 sm:py-2.5 px-3 rounded-xl text-sm font-medium border transition-all active:scale-95 ${
                 form.status === value
                   ? 'bg-accent border-accent text-white'
                   : 'bg-bg-input border-border text-text-secondary hover:border-accent/50'
@@ -127,7 +127,8 @@ export default function SeriesForm({ initialData, onSubmit }) {
             <label className="block text-sm font-medium text-text-secondary mb-2">
               Intervalle de revisionnage
             </label>
-            <div className="flex flex-wrap gap-2 mb-3">
+            {/* Horizontal scroll on mobile, wrap on desktop */}
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-x-visible scrollbar-hide mb-3">
               {REWATCH_INTERVALS.map((interval) => (
                 <button
                   key={interval.months}
@@ -136,7 +137,7 @@ export default function SeriesForm({ initialData, onSubmit }) {
                     update('rewatchIntervalMonths', interval.months)
                     setUseCustomInterval(false)
                   }}
-                  className={`py-2 px-4 rounded-xl text-sm font-medium border transition-all ${
+                  className={`py-2.5 sm:py-2 px-4 rounded-xl text-sm font-medium border transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
                     !useCustomInterval && form.rewatchIntervalMonths === interval.months
                       ? 'bg-accent border-accent text-white'
                       : 'bg-bg-input border-border text-text-secondary hover:border-accent/50'
@@ -148,7 +149,7 @@ export default function SeriesForm({ initialData, onSubmit }) {
               <button
                 type="button"
                 onClick={() => setUseCustomInterval(true)}
-                className={`py-2 px-4 rounded-xl text-sm font-medium border transition-all ${
+                className={`py-2.5 sm:py-2 px-4 rounded-xl text-sm font-medium border transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
                   useCustomInterval
                     ? 'bg-accent border-accent text-white'
                     : 'bg-bg-input border-border text-text-secondary hover:border-accent/50'
@@ -178,14 +179,14 @@ export default function SeriesForm({ initialData, onSubmit }) {
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          className="flex-1 py-3 bg-accent hover:bg-accent-hover text-white rounded-xl font-medium transition-colors"
+          className="flex-1 py-3.5 sm:py-3 bg-accent hover:bg-accent-hover active:bg-accent-hover text-white rounded-xl font-medium transition-colors"
         >
           {initialData ? 'Enregistrer' : 'Ajouter la série'}
         </button>
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="px-6 py-3 bg-bg-input border border-border text-text-secondary rounded-xl font-medium hover:border-accent/50 transition-colors"
+          className="px-6 py-3.5 sm:py-3 bg-bg-input border border-border text-text-secondary rounded-xl font-medium hover:border-accent/50 active:bg-white/5 transition-colors"
         >
           Annuler
         </button>

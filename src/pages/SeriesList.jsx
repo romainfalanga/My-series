@@ -29,15 +29,15 @@ export default function SeriesList({ series, onResetRewatch, onDelete }) {
   }, [series, search, statusFilter, sortBy])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text-primary">Mes séries</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Mes séries</h1>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-text-secondary">Trier par :</span>
+          <span className="text-sm text-text-secondary hidden sm:inline">Trier par :</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-bg-input border border-border rounded-xl px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
+            className="bg-bg-input border border-border rounded-xl px-3 py-2.5 sm:py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
           >
             <option value="rating">Note</option>
             <option value="title">Titre</option>
@@ -61,7 +61,7 @@ export default function SeriesList({ series, onResetRewatch, onDelete }) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((s) => (
             <SeriesCard
               key={s.id}

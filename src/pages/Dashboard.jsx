@@ -40,17 +40,17 @@ export default function Dashboard({ series, onResetRewatch, onDelete }) {
 
   if (isEmpty) {
     return (
-      <div className="text-center py-20">
-        <p className="text-6xl mb-4">📺</p>
-        <h2 className="text-2xl font-bold text-text-primary mb-2">
+      <div className="text-center py-16 sm:py-20 px-4">
+        <p className="text-5xl sm:text-6xl mb-4">📺</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">
           Bienvenue sur My Series !
         </h2>
-        <p className="text-text-secondary mb-8 max-w-md mx-auto">
+        <p className="text-text-secondary mb-8 max-w-md mx-auto text-sm sm:text-base">
           Ajoutez vos séries préférées et l'app vous dira quand il sera temps de les revoir.
         </p>
         <button
           onClick={() => navigate('/add')}
-          className="px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-xl font-medium transition-colors"
+          className="px-6 py-3 bg-accent hover:bg-accent-hover active:bg-accent-hover text-white rounded-xl font-medium transition-colors"
         >
           Ajouter ma première série
         </button>
@@ -59,14 +59,14 @@ export default function Dashboard({ series, onResetRewatch, onDelete }) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       {ready.length > 0 && (
         <Section
           title="À revoir maintenant"
           dot="bg-red-500"
           count={ready.length}
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ready.map(({ series: s }) => (
               <SeriesCard
                 key={s.id}
@@ -81,7 +81,7 @@ export default function Dashboard({ series, onResetRewatch, onDelete }) {
 
       {soon.length > 0 && (
         <Section title="Bientôt prêtes" dot="bg-yellow-500" count={soon.length}>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {soon.map(({ series: s }) => (
               <SeriesCard
                 key={s.id}
@@ -96,7 +96,7 @@ export default function Dashboard({ series, onResetRewatch, onDelete }) {
 
       {waiting.length > 0 && (
         <Section title="En attente" dot="bg-green-500" count={waiting.length}>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {waiting.map(({ series: s }) => (
               <SeriesCard
                 key={s.id}
@@ -111,7 +111,7 @@ export default function Dashboard({ series, onResetRewatch, onDelete }) {
 
       {wishlist.length > 0 && (
         <Section title="Wishlist" dot="bg-blue-500" count={wishlist.length}>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {wishlist.map((s) => (
               <SeriesCard
                 key={s.id}
@@ -130,10 +130,10 @@ export default function Dashboard({ series, onResetRewatch, onDelete }) {
 function Section({ title, dot, count, children }) {
   return (
     <section>
-      <div className="flex items-center gap-3 mb-4">
-        <span className={`w-3 h-3 rounded-full ${dot}`} />
-        <h2 className="text-xl font-bold text-text-primary">{title}</h2>
-        <span className="text-sm text-text-secondary bg-white/5 px-2.5 py-0.5 rounded-full">
+      <div className="flex items-center gap-3 mb-3 sm:mb-4">
+        <span className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${dot}`} />
+        <h2 className="text-lg sm:text-xl font-bold text-text-primary">{title}</h2>
+        <span className="text-xs sm:text-sm text-text-secondary bg-white/5 px-2 sm:px-2.5 py-0.5 rounded-full">
           {count}
         </span>
       </div>

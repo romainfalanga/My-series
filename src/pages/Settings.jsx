@@ -34,19 +34,19 @@ export default function Settings({ onImport, onExport, seriesCount }) {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-text-primary">Gestion des données</h1>
+    <div className="max-w-lg mx-auto space-y-6 sm:space-y-8">
+      <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Gestion des données</h1>
 
-      <div className="bg-bg-card border border-border rounded-2xl p-6 space-y-4">
+      <div className="bg-bg-card border border-border rounded-2xl p-5 sm:p-6 space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-text-primary mb-1">Exporter</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-1">Exporter</h2>
           <p className="text-sm text-text-secondary mb-4">
             Téléchargez une sauvegarde de vos {seriesCount} séries au format JSON.
           </p>
           <button
             onClick={handleExport}
             disabled={seriesCount === 0}
-            className="w-full py-3 bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
+            className="w-full py-3 bg-accent hover:bg-accent-hover active:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
           >
             Exporter mes données
           </button>
@@ -55,7 +55,7 @@ export default function Settings({ onImport, onExport, seriesCount }) {
         <hr className="border-border" />
 
         <div>
-          <h2 className="text-lg font-semibold text-text-primary mb-1">Importer</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-1">Importer</h2>
           <p className="text-sm text-text-secondary mb-4">
             Restaurez vos données depuis un fichier JSON. Attention, cela remplacera les données actuelles.
           </p>
@@ -68,7 +68,7 @@ export default function Settings({ onImport, onExport, seriesCount }) {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full py-3 bg-bg-input border border-border text-text-primary rounded-xl font-medium hover:border-accent/50 transition-colors"
+            className="w-full py-3 bg-bg-input border border-border text-text-primary rounded-xl font-medium hover:border-accent/50 active:bg-white/5 transition-colors"
           >
             Importer un fichier JSON
           </button>
