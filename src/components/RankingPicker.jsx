@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import StarRating from './StarRating'
 
 export default function RankingPicker({ existingSeries, newSeriesData, onConfirm, onBack }) {
-  // Build initial list: existing sorted by rank + new series at the end
   const buildInitialList = () => {
     const sorted = [...existingSeries].sort((a, b) => (a.rank || 0) - (b.rank || 0))
     const newItem = { ...newSeriesData, _isNew: true, _tempId: '__new__' }
@@ -10,22 +9,21 @@ export default function RankingPicker({ existingSeries, newSeriesData, onConfirm
   }
 
   const [items, setItems] = useState(buildInitialList)
-  const [dragIndex, setDragIndex] = useState(null)
-  const [overIndex, setOverIndex] = useState(null)
+  const [dragging, setDragging] = useState(false)
   const listRef = useRef(null)
   const itemRefs = useRef([])
-  const dragStartY = useRef(0)
-  const dragCurrentY = useRef(0)
   const scrollInterval = useRef(null)
 
-  // Cleanup scroll interval on unmount
+  // All drag state lives in a single ref to avoid stale closures
+  const drag = useRef({ active: false, index: null, overIndex: null })
+
   useEffect(() => {
     return () => {
       if (scrollInterval.current) clearInterval(scrollInterval.current)
     }
   }, [])
 
-  const getItemIndexAtY = useCallback((clientY) => {
+  const getItemIndexAtY = (clientY) => {
     for (let i = 0; i < itemRefs.current.length; i++) {
       const el = itemRefs.current[i]
       if (!el) continue
@@ -34,9 +32,9 @@ export default function RankingPicker({ existingSeries, newSeriesData, onConfirm
       if (clientY < midY) return i
     }
     return itemRefs.current.length - 1
-  }, [])
+  }
 
-  const autoScroll = useCallback((clientY) => {
+  const autoScroll = (clientY) => {
     const container = listRef.current
     if (!container) return
 
@@ -58,62 +56,56 @@ export default function RankingPicker({ existingSeries, newSeriesData, onConfirm
         container.scrollTop += speed
       }, 16)
     }
-  }, [])
+  }
 
-  const handleDragStart = useCallback((index, clientY) => {
-    setDragIndex(index)
-    setOverIndex(index)
-    dragStartY.current = clientY
-    dragCurrentY.current = clientY
-  }, [])
-
-  const handleDragMove = useCallback((clientY) => {
-    if (dragIndex === null) return
-    dragCurrentY.current = clientY
-    const targetIndex = getItemIndexAtY(clientY)
-    setOverIndex(targetIndex)
-    autoScroll(clientY)
-  }, [dragIndex, getItemIndexAtY, autoScroll])
-
-  const handleDragEnd = useCallback(() => {
-    if (dragIndex !== null && overIndex !== null && dragIndex !== overIndex) {
-      setItems((prev) => {
-        const next = [...prev]
-        const [moved] = next.splice(dragIndex, 1)
-        next.splice(overIndex, 0, moved)
-        return next
-      })
-    }
-    setDragIndex(null)
-    setOverIndex(null)
-    if (scrollInterval.current) {
-      clearInterval(scrollInterval.current)
-      scrollInterval.current = null
-    }
-  }, [dragIndex, overIndex])
-
-  // Pointer events for both mouse and touch
   const handlePointerDown = useCallback((e, index) => {
     e.preventDefault()
-    handleDragStart(index, e.clientY)
+
+    drag.current = { active: true, index, overIndex: index }
+    setDragging(true)
 
     const onPointerMove = (e2) => {
       e2.preventDefault()
-      handleDragMove(e2.clientY)
+      if (!drag.current.active) return
+
+      const targetIndex = getItemIndexAtY(e2.clientY)
+      const d = drag.current
+
+      if (targetIndex !== d.overIndex) {
+        // Move the item in real-time
+        setItems((prev) => {
+          const next = [...prev]
+          const [moved] = next.splice(d.index, 1)
+          next.splice(targetIndex, 0, moved)
+          return next
+        })
+        d.index = targetIndex
+        d.overIndex = targetIndex
+      }
+
+      autoScroll(e2.clientY)
     }
+
     const onPointerUp = () => {
-      handleDragEnd()
+      drag.current = { active: false, index: null, overIndex: null }
+      setDragging(false)
+
+      if (scrollInterval.current) {
+        clearInterval(scrollInterval.current)
+        scrollInterval.current = null
+      }
+
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
     }
+
     window.addEventListener('pointermove', onPointerMove)
     window.addEventListener('pointerup', onPointerUp)
-  }, [handleDragStart, handleDragMove, handleDragEnd])
+  }, [])
 
   const handleConfirm = () => {
     const newIndex = items.findIndex((item) => item._isNew)
-    const rank = newIndex + 1
-    onConfirm(rank)
+    onConfirm(newIndex + 1)
   }
 
   const newIndex = items.findIndex((item) => item._isNew)
@@ -136,21 +128,20 @@ export default function RankingPicker({ existingSeries, newSeriesData, onConfirm
       >
         {items.map((item, index) => {
           const isNew = item._isNew
-          const isDragging = dragIndex === index
-          const isDropTarget = dragIndex !== null && overIndex === index && dragIndex !== index
+          const isDragSource = dragging && drag.current.index === index
 
           return (
             <div
               key={isNew ? '__new__' : item.id}
               ref={(el) => (itemRefs.current[index] = el)}
               className={`
-                flex items-center gap-3 rounded-xl border p-3 sm:p-3.5 transition-all select-none
+                flex items-center gap-3 rounded-xl border p-3 sm:p-3.5 select-none
+                transition-transform duration-150
                 ${isNew
                   ? 'bg-accent/10 border-accent/40 ring-2 ring-accent/20'
                   : 'bg-bg-card border-border'
                 }
-                ${isDragging ? 'opacity-40 scale-95' : ''}
-                ${isDropTarget ? 'border-accent border-2 translate-y-0.5' : ''}
+                ${isDragSource ? 'opacity-60 scale-[0.97] shadow-lg shadow-accent/10' : ''}
               `}
             >
               {/* Drag handle */}
