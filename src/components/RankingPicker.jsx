@@ -1,191 +1,126 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef } from 'react'
 import StarRating from './StarRating'
 
 export default function RankingPicker({ existingSeries, newSeriesData, onConfirm, onBack }) {
-  const buildInitialList = () => {
-    const sorted = [...existingSeries].sort((a, b) => (a.rank || 0) - (b.rank || 0))
-    const newItem = { ...newSeriesData, _isNew: true, _tempId: '__new__' }
-    return [...sorted, newItem]
-  }
+  const sorted = [...existingSeries].sort((a, b) => (a.rank || 0) - (b.rank || 0))
 
-  const [items, setItems] = useState(buildInitialList)
-  const [dragging, setDragging] = useState(false)
-  const listRef = useRef(null)
-  const itemRefs = useRef([])
-  const scrollInterval = useRef(null)
+  // insertPosition = index in the existing list where the new series will be inserted
+  // null means not yet placed, 0 = before first, sorted.length = after last
+  const [insertPosition, setInsertPosition] = useState(null)
+  const insertedRef = useRef(null)
 
-  // All drag state lives in a single ref to avoid stale closures
-  const drag = useRef({ active: false, index: null, overIndex: null })
-
+  // Scroll to the inserted card when position changes
   useEffect(() => {
-    return () => {
-      if (scrollInterval.current) clearInterval(scrollInterval.current)
+    if (insertPosition !== null && insertedRef.current) {
+      insertedRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
-  }, [])
-
-  const getItemIndexAtY = (clientY) => {
-    for (let i = 0; i < itemRefs.current.length; i++) {
-      const el = itemRefs.current[i]
-      if (!el) continue
-      const rect = el.getBoundingClientRect()
-      const midY = rect.top + rect.height / 2
-      if (clientY < midY) return i
-    }
-    return itemRefs.current.length - 1
-  }
-
-  const autoScroll = (clientY) => {
-    const container = listRef.current
-    if (!container) return
-
-    const rect = container.getBoundingClientRect()
-    const threshold = 60
-    const speed = 8
-
-    if (scrollInterval.current) {
-      clearInterval(scrollInterval.current)
-      scrollInterval.current = null
-    }
-
-    if (clientY - rect.top < threshold) {
-      scrollInterval.current = setInterval(() => {
-        container.scrollTop -= speed
-      }, 16)
-    } else if (rect.bottom - clientY < threshold) {
-      scrollInterval.current = setInterval(() => {
-        container.scrollTop += speed
-      }, 16)
-    }
-  }
-
-  const handlePointerDown = useCallback((e, index) => {
-    e.preventDefault()
-
-    drag.current = { active: true, index, overIndex: index }
-    setDragging(true)
-
-    const onPointerMove = (e2) => {
-      e2.preventDefault()
-      if (!drag.current.active) return
-
-      const targetIndex = getItemIndexAtY(e2.clientY)
-      const d = drag.current
-
-      if (targetIndex !== d.overIndex) {
-        // Move the item in real-time
-        setItems((prev) => {
-          const next = [...prev]
-          const [moved] = next.splice(d.index, 1)
-          next.splice(targetIndex, 0, moved)
-          return next
-        })
-        d.index = targetIndex
-        d.overIndex = targetIndex
-      }
-
-      autoScroll(e2.clientY)
-    }
-
-    const onPointerUp = () => {
-      drag.current = { active: false, index: null, overIndex: null }
-      setDragging(false)
-
-      if (scrollInterval.current) {
-        clearInterval(scrollInterval.current)
-        scrollInterval.current = null
-      }
-
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-    }
-
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp)
-  }, [])
+  }, [insertPosition])
 
   const handleConfirm = () => {
-    const newIndex = items.findIndex((item) => item._isNew)
-    onConfirm(newIndex + 1)
+    const rank = insertPosition !== null ? insertPosition + 1 : sorted.length + 1
+    onConfirm(rank)
   }
-
-  const newIndex = items.findIndex((item) => item._isNew)
 
   return (
     <div className="max-w-lg mx-auto">
-      <div className="mb-4 sm:mb-6">
+      {/* Header */}
+      <div className="mb-4 sm:mb-5">
         <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-1">
           Classement
         </h2>
         <p className="text-sm text-text-secondary">
-          Glissez <span className="text-accent font-medium">{newSeriesData.title}</span> à
-          la position souhaitée dans votre classement.
+          Placez <span className="text-accent font-medium">{newSeriesData.title}</span> dans
+          votre classement en tapant sur un emplacement.
         </p>
       </div>
 
-      <div
-        ref={listRef}
-        className="space-y-1.5 max-h-[60vh] overflow-y-auto overscroll-contain pb-2 -mx-1 px-1"
-      >
-        {items.map((item, index) => {
-          const isNew = item._isNew
-          const isDragSource = dragging && drag.current.index === index
+      {/* New series preview card */}
+      <div className="mb-4 p-3 rounded-xl bg-accent/10 border border-accent/40 flex items-center gap-3">
+        <span className="w-8 h-8 rounded-full bg-accent text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
+          {insertPosition !== null ? insertPosition + 1 : '?'}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-accent truncate">{newSeriesData.title}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <StarRating rating={newSeriesData.rating} readonly size="sm" />
+            <span className="text-[10px] font-semibold text-accent/60 uppercase">Nouveau</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Ranked list with insertion slots */}
+      <div className="max-h-[50vh] overflow-y-auto overscroll-contain -mx-1 px-1 pb-2">
+        {/* Slot before first item */}
+        <InsertSlot
+          position={0}
+          active={insertPosition === 0}
+          onSelect={() => setInsertPosition(0)}
+          label="Placer en #1"
+        />
+
+        {/* Inserted card at position 0 */}
+        {insertPosition === 0 && (
+          <NewSeriesCard
+            ref={insertedRef}
+            data={newSeriesData}
+            rank={1}
+          />
+        )}
+
+        {sorted.map((item, index) => {
+          // If new series is inserted at or before this index, shift rank by 1
+          const displayRank = insertPosition !== null && insertPosition <= index
+            ? index + 2
+            : index + 1
 
           return (
-            <div
-              key={isNew ? '__new__' : item.id}
-              ref={(el) => (itemRefs.current[index] = el)}
-              className={`
-                flex items-center gap-3 rounded-xl border p-3 sm:p-3.5 select-none
-                transition-transform duration-150
-                ${isNew
-                  ? 'bg-accent/10 border-accent/40 ring-2 ring-accent/20'
-                  : 'bg-bg-card border-border'
-                }
-                ${isDragSource ? 'opacity-60 scale-[0.97] shadow-lg shadow-accent/10' : ''}
-              `}
-            >
-              {/* Drag handle */}
-              <button
-                type="button"
-                onPointerDown={(e) => handlePointerDown(e, index)}
-                className="touch-none p-2 -m-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-white/5 active:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
-                </svg>
-              </button>
-
-              {/* Rank number */}
-              <span className={`
-                w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
-                ${isNew ? 'bg-accent text-white' : 'bg-white/5 text-text-secondary'}
-              `}>
-                {index + 1}
-              </span>
-
-              {/* Series info */}
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium truncate ${isNew ? 'text-accent' : 'text-text-primary'}`}>
-                  {item.title}
-                  {isNew && <span className="ml-2 text-xs text-accent/70">NOUVEAU</span>}
-                </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <StarRating rating={item.rating} readonly size="sm" />
+            <div key={item.id}>
+              {/* Existing series row */}
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-bg-card p-3 sm:p-3.5">
+                <span className="w-7 h-7 rounded-full bg-white/5 text-text-secondary text-xs font-bold flex items-center justify-center flex-shrink-0">
+                  {displayRank}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-text-primary truncate">{item.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <StarRating rating={item.rating} readonly size="sm" />
+                  </div>
                 </div>
               </div>
+
+              {/* Slot after this item */}
+              <InsertSlot
+                position={index + 1}
+                active={insertPosition === index + 1}
+                onSelect={() => setInsertPosition(index + 1)}
+                label={`Placer en #${index + 2}`}
+              />
+
+              {/* Inserted card after this item */}
+              {insertPosition === index + 1 && (
+                <NewSeriesCard
+                  ref={insertedRef}
+                  data={newSeriesData}
+                  rank={index + 2}
+                />
+              )}
             </div>
           )
         })}
       </div>
 
-      <div className="mt-6 space-y-3">
-        <p className="text-center text-sm text-text-secondary">
-          Position actuelle : <span className="text-accent font-bold">#{newIndex + 1}</span> sur {items.length}
-        </p>
+      {/* Confirm / Back */}
+      <div className="mt-5 space-y-3">
+        {insertPosition !== null && (
+          <p className="text-center text-sm text-text-secondary">
+            Position choisie : <span className="text-accent font-bold">#{insertPosition + 1}</span> sur {sorted.length + 1}
+          </p>
+        )}
         <div className="flex gap-3">
           <button
             onClick={handleConfirm}
-            className="flex-1 py-3.5 sm:py-3 bg-accent hover:bg-accent-hover active:bg-accent-hover text-white rounded-xl font-medium transition-colors"
+            disabled={insertPosition === null}
+            className="flex-1 py-3.5 sm:py-3 bg-accent hover:bg-accent-hover active:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
           >
             Confirmer le classement
           </button>
@@ -200,3 +135,45 @@ export default function RankingPicker({ existingSeries, newSeriesData, onConfirm
     </div>
   )
 }
+
+/* Insertion slot – tappable zone between existing series */
+function InsertSlot({ position, active, onSelect, label }) {
+  if (active) return null // Don't show slot when the card is already inserted here
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="group w-full py-2 my-1 flex items-center gap-2 outline-none"
+    >
+      <div className="flex-1 h-0.5 bg-border group-hover:bg-accent/50 group-active:bg-accent transition-colors rounded" />
+      <span className="text-[11px] font-medium text-text-secondary group-hover:text-accent group-active:text-accent transition-colors whitespace-nowrap px-2 py-1 rounded-lg group-hover:bg-accent/10 group-active:bg-accent/10">
+        {label}
+      </span>
+      <div className="flex-1 h-0.5 bg-border group-hover:bg-accent/50 group-active:bg-accent transition-colors rounded" />
+    </button>
+  )
+}
+
+/* The new series card rendered in-place in the list */
+const NewSeriesCard = forwardRef(function NewSeriesCard({ data, rank }, ref) {
+  return (
+    <div
+      ref={ref}
+      className="flex items-center gap-3 rounded-xl border-2 border-accent bg-accent/10 p-3 sm:p-3.5 my-1 ring-2 ring-accent/20 animate-in"
+    >
+      <span className="w-7 h-7 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+        {rank}
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-accent truncate">
+          {data.title}
+          <span className="ml-2 text-[10px] text-accent/60 uppercase">Nouveau</span>
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <StarRating rating={data.rating} readonly size="sm" />
+        </div>
+      </div>
+    </div>
+  )
+})
