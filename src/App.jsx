@@ -61,7 +61,7 @@ export default function App() {
             />
             <Route
               path="/add"
-              element={<AddSeries onAdd={addSeries} />}
+              element={<AddSeries onAdd={addSeries} series={series} />}
             />
             <Route
               path="/edit/:id"

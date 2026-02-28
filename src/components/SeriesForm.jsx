@@ -13,7 +13,7 @@ const emptyForm = {
   customInterval: '',
 }
 
-export default function SeriesForm({ initialData, onSubmit }) {
+export default function SeriesForm({ initialData, onSubmit, submitLabel, navigateOnSubmit = true }) {
   const navigate = useNavigate()
   const [form, setForm] = useState(emptyForm)
   const [useCustomInterval, setUseCustomInterval] = useState(false)
@@ -46,7 +46,7 @@ export default function SeriesForm({ initialData, onSubmit }) {
     }
     delete data.customInterval
     onSubmit(data)
-    navigate('/')
+    if (navigateOnSubmit) navigate('/')
   }
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
@@ -181,7 +181,7 @@ export default function SeriesForm({ initialData, onSubmit }) {
           type="submit"
           className="flex-1 py-3.5 sm:py-3 bg-accent hover:bg-accent-hover active:bg-accent-hover text-white rounded-xl font-medium transition-colors"
         >
-          {initialData ? 'Enregistrer' : 'Ajouter la série'}
+          {submitLabel || (initialData ? 'Enregistrer' : 'Ajouter la série')}
         </button>
         <button
           type="button"

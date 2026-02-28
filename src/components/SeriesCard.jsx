@@ -4,19 +4,26 @@ import StarRating from './StarRating'
 import StatusBadge from './StatusBadge'
 import RewatchIndicator from './RewatchIndicator'
 
-export default function SeriesCard({ series, onResetRewatch, onDelete }) {
+export default function SeriesCard({ series, onResetRewatch, onDelete, showRank = false }) {
   const navigate = useNavigate()
 
   return (
     <div className="bg-bg-card rounded-xl border border-border p-4 sm:p-5 hover:border-accent/50 transition-all group active:scale-[0.98]">
       <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-start gap-2.5">
+          {showRank && series.rank && (
+            <span className="w-7 h-7 rounded-full bg-accent/15 text-accent text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+              {series.rank}
+            </span>
+          )}
+          <div className="flex-1 min-w-0">
           <h3 className="text-base sm:text-lg font-semibold text-text-primary truncate pr-2">
             {series.title}
           </h3>
           <div className="flex items-center gap-3 mt-1">
             <StarRating rating={series.rating} readonly size="sm" />
             <StatusBadge status={series.status} />
+          </div>
           </div>
         </div>
         {/* Always visible on mobile, hover-only on desktop */}

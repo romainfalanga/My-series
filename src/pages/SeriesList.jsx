@@ -5,7 +5,7 @@ import SeriesCard from '../components/SeriesCard'
 export default function SeriesList({ series, onResetRewatch, onDelete }) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('rating')
+  const [sortBy, setSortBy] = useState('rank')
 
   const filtered = useMemo(() => {
     let result = [...series]
@@ -19,7 +19,9 @@ export default function SeriesList({ series, onResetRewatch, onDelete }) {
       result = result.filter((s) => s.status === statusFilter)
     }
 
-    if (sortBy === 'rating') {
+    if (sortBy === 'rank') {
+      result.sort((a, b) => (a.rank || 999) - (b.rank || 999))
+    } else if (sortBy === 'rating') {
       result.sort((a, b) => (b.rating || 0) - (a.rating || 0))
     } else if (sortBy === 'title') {
       result.sort((a, b) => a.title.localeCompare(b.title, 'fr'))
@@ -39,6 +41,7 @@ export default function SeriesList({ series, onResetRewatch, onDelete }) {
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-bg-input border border-border rounded-xl px-3 py-2.5 sm:py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
           >
+            <option value="rank">Classement</option>
             <option value="rating">Note</option>
             <option value="title">Titre</option>
           </select>
@@ -68,6 +71,7 @@ export default function SeriesList({ series, onResetRewatch, onDelete }) {
               series={s}
               onResetRewatch={onResetRewatch}
               onDelete={onDelete}
+              showRank={sortBy === 'rank'}
             />
           ))}
         </div>
