@@ -22,6 +22,15 @@ export default function Navbar() {
           </NavLink>
 
           <div className="flex items-center gap-1">
+            <a
+              href="https://fr.tipeee.com/romain-falanga"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mr-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5"
+            >
+              <HeartIcon className="w-4 h-4" />
+              Faire un don
+            </a>
             <NavLink
               to="/"
               className={({ isActive }) =>
@@ -70,11 +79,20 @@ export default function Navbar() {
 
       {/* Mobile top header - minimal */}
       <header className="sm:hidden bg-bg-secondary/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
-        <div className="px-4 h-12 flex items-center justify-center">
+        <div className="px-4 h-12 flex items-center justify-between">
           <NavLink to="/" className="flex items-center gap-2 text-lg font-bold text-text-primary">
             <span className="text-xl">📺</span>
             <span>My Series</span>
           </NavLink>
+          <a
+            href="https://fr.tipeee.com/romain-falanga"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-400 text-black rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+          >
+            <HeartIcon className="w-3.5 h-3.5" />
+            Faire un don
+          </a>
         </div>
       </header>
 
@@ -137,6 +155,14 @@ function PlusIcon({ className }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+  )
+}
+
+function HeartIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
     </svg>
   )
 }
